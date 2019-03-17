@@ -1,0 +1,7 @@
+com\crawler\service\CrawlServiceTest.class
+com\crawler\ApplicationTest.class
+com\crawler\controller\CrawlerControllerTest.class
+com\crawler\utils\CrawlSiteTest$1.class
+com\crawler\utils\CommonUtilityTest.class
+com\crawler\utils\CrawlSiteTest.class
+com\crawler\service\CrawlServiceTest$1.class
