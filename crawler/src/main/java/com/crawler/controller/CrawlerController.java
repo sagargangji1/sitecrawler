@@ -30,8 +30,10 @@ public class CrawlerController {
 	public SiteMapResponse crawlPage(@RequestBody CrawlRequest crawlRequest) {
 		SiteMapResponse siteMapResponse = new SiteMapResponse();
 		String domain = CommonUtility.getDomain(crawlRequest.getUrl());
+		
+		String baseUrl = CommonUtility.getBaseUrl(crawlRequest.getUrl());
 
-		if (domain == null)
+		if (domain == null || baseUrl ==  null)
 			siteMapResponse.setStatus(ResponseConstantUtility.getInvalidDomainResponse());
 		else if (crawlRequest.getNoOfPagesToCrawl() != null
 				&& crawlRequest.getNoOfPagesToCrawl() > Constants.MAX_PAGES_TO_CRAWL)
@@ -45,7 +47,7 @@ public class CrawlerController {
 				allowedDomain = new ArrayList<>();
 				allowedDomain.add(domain);
 			}
-			SiteMap m = crawlService.crawlSite(crawlRequest.getUrl(), allowedDomain, noOfPagesToCrawl);
+			SiteMap m = crawlService.crawlSite(crawlRequest.getUrl(), allowedDomain, noOfPagesToCrawl , baseUrl);
 			siteMapResponse.setSiteMap(m);
 			siteMapResponse.setStatus(ResponseConstantUtility.getSuccessResponse());
 		}

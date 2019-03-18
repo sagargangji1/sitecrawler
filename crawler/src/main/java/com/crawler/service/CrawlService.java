@@ -18,9 +18,9 @@ import com.crawler.utils.CrawlSite;
 @Component
 public class CrawlService {
 
-	public SiteMap crawlSite(String url , List<String> domain ,int noOfPagesToCrawl){
+	public SiteMap crawlSite(String url , List<String> domain ,int noOfPagesToCrawl , String baseUrl){
 		Map<String, SiteMap> visitedUrl = new HashMap<>();
-		CrawlSite crawlSite = new CrawlSite(true ,domain , noOfPagesToCrawl);
+		CrawlSite crawlSite = new CrawlSite(true ,domain , noOfPagesToCrawl , baseUrl);
 		return  crawlSite.crawlUrl(url, null,  visitedUrl );
 	}
 	

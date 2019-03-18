@@ -25,10 +25,10 @@ public class CrawlServiceTest {
 			}
 		};
 
-		SiteMap siteMap = crawlService.crawlSite("http://redhat.com", allowedDomain, 1);
+		SiteMap siteMap = crawlService.crawlSite("http://redhat.com", allowedDomain, 1,"http://redhat.com");
 		assertEquals(siteMap.getChilderens(), null);
 
-		siteMap = crawlService.crawlSite("http://redhat.com", allowedDomain, 5);
+		siteMap = crawlService.crawlSite("http://redhat.com", allowedDomain, 5,"http://redhat.com");
 		assertEquals(siteMap.getChilderens().size() > 0, true);
 	}
 }

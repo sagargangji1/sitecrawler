@@ -24,28 +24,32 @@ public class CrawlSite {
 
 	private List<String> allowedDomains;
 
+	private String baseUrl;
+	
 	private AtomicInteger counter;
 
 	private int maxUrlToBeCrawl;
 
-	public CrawlSite(boolean restrictDomain, List<String> allowedDomains, int maxUrlToBeCrawl) {
+	public CrawlSite(boolean restrictDomain, List<String> allowedDomains, int maxUrlToBeCrawl,String baseUrl) {
 		this.restrictDomain = restrictDomain;
 		this.allowedDomains = allowedDomains;
 		this.maxUrlToBeCrawl = maxUrlToBeCrawl;
 		this.counter = new AtomicInteger(1);
+		this.baseUrl= baseUrl;
 	}
 
 	public SiteMap crawlUrl(String url, String text, Map<String, SiteMap> visitedUrl) {
 		String lowerCaseUrl = url.toLowerCase();
+		if ((text == null || text.isEmpty() ) && visitedUrl.size() > 0 )
+			return null;
+		
 		if (visitedUrl.containsKey(lowerCaseUrl)) {
-			SiteMap siteMap = new SiteMap(visitedUrl.get(lowerCaseUrl).getName());
-			return siteMap;
+			return new SiteMap(text);
 		}
-		if (text == null)
-			text = url;
 
 		SiteMap parentSiteMap = null;
-
+		if(text == null || text.isEmpty()  )
+			text= url;
 		parentSiteMap = new SiteMap(text);
 		visitedUrl.put(url, parentSiteMap);
 		counter.incrementAndGet();
@@ -55,9 +59,11 @@ public class CrawlSite {
 			Elements questions = doc.select("a[href]");
 			for (Element link : questions) {
 				String nextUrl = link.attr("href");
+				nextUrl = formUrl(nextUrl);
 				if (doCrawlNextPage(nextUrl) && link.text() != null && !link.text().isEmpty()) {
 					SiteMap siteMap = crawlUrl(nextUrl, link.text(), visitedUrl);
-					parentSiteMap.addChildren(siteMap);
+					if(siteMap != null)
+						parentSiteMap.addChildren(siteMap);
 				}
 
 			}
@@ -72,6 +78,12 @@ public class CrawlSite {
 		return parentSiteMap;
 	}
 
+	private String formUrl(String nextUrl) {
+		if(!nextUrl.startsWith("http"))
+			nextUrl = baseUrl + "/" +nextUrl;
+		return nextUrl;
+		
+	}
 	private boolean doCrawlNextPage(String url) {
 		if (counter.get() >= this.maxUrlToBeCrawl)
 			return false;
@@ -80,6 +92,7 @@ public class CrawlSite {
 		// Allow All domain to crawl
 		if (!restrictDomain)
 			return true;
+		
 		// If Crawling restricted to specific domain then check for domain to
 		// crawl
 		String domain = CommonUtility.getDomain(url);
