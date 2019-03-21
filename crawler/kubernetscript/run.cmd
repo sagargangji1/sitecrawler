@@ -1,6 +1,3 @@
-
-echo %1
-
 mvn clean compile package
 
 docker build -t sagarg1990/crawler .

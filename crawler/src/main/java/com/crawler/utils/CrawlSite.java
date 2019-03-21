@@ -51,15 +51,14 @@ public class CrawlSite {
 				if (isCounterExceed())
 					break;
 				String text = link.text();
-				if (text == null || text.isEmpty())
-					continue;
 				String nextUrl = link.attr("href");
 				nextUrl = formUrl(nextUrl);
+				if (text == null || text.isEmpty() || isMalformedUrl(nextUrl))
+					continue;
 				try {
 					new URL(nextUrl);
 					if (doCrawlNextPage(nextUrl, visitedUrl)) {
 						SiteMap siteMap = new SiteMap(link.text(), nextUrl);
-						// crawlUrl(nextUrl, link.text(), visitedUrl);
 						childs.add(siteMap);
 						visitedUrl.add(nextUrl.toLowerCase());
 						counter.incrementAndGet();
@@ -67,7 +66,6 @@ public class CrawlSite {
 				} catch (Exception e) {
 					continue;
 				}
-				
 
 			}
 			parentSiteMap.setChildren(childs);
@@ -92,6 +90,14 @@ public class CrawlSite {
 			nextUrl = baseUrl + "/" + nextUrl;
 		return nextUrl;
 
+	}
+
+	private boolean isMalformedUrl(String url) {
+		if (url == null)
+			return true;
+		if (url.indexOf(':') != url.lastIndexOf(':'))
+			return true;
+		return false;
 	}
 
 	private boolean isCounterExceed() {
