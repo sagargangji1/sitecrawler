@@ -36,7 +36,7 @@ public class CrawlerController {
 		if (domain == null || baseUrl ==  null)
 			siteMapResponse.setStatus(ResponseConstantUtility.getInvalidDomainResponse());
 		else if (crawlRequest.getNoOfPagesToCrawl() != null
-				&& crawlRequest.getNoOfPagesToCrawl() > Constants.MAX_PAGES_TO_CRAWL)
+				&& ( crawlRequest.getNoOfPagesToCrawl() > Constants.MAX_PAGES_TO_CRAWL || crawlRequest.getNoOfPagesToCrawl() < 1))
 			siteMapResponse.setStatus(ResponseConstantUtility.getInvalidNoOfPagesToCrawl());
 		else {
 			Integer noOfPagesToCrawl = crawlRequest.getNoOfPagesToCrawl();

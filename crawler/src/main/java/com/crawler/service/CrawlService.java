@@ -1,8 +1,7 @@
 package com.crawler.service;
 
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -19,9 +18,13 @@ import com.crawler.utils.CrawlSite;
 public class CrawlService {
 
 	public SiteMap crawlSite(String url , List<String> domain ,int noOfPagesToCrawl , String baseUrl){
-		Map<String, SiteMap> visitedUrl = new HashMap<>();
+		SiteMap root = new SiteMap(url ,url);
+		if(noOfPagesToCrawl < 2)
+			return root;
+		List<String> visitedUrl = new LinkedList<>();
+		visitedUrl.add(url);
 		CrawlSite crawlSite = new CrawlSite(true ,domain , noOfPagesToCrawl , baseUrl);
-		return  crawlSite.crawlUrl(url, null,  visitedUrl );
+		return  crawlSite.crawlUrl(url, visitedUrl ,root);
 	}
 	
 }
