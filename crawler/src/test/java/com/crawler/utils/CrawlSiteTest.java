@@ -3,8 +3,8 @@ package com.crawler.utils;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.junit.Test;
 
@@ -21,18 +21,15 @@ public class CrawlSiteTest {
 			}
 		};
 
-		List<String> visitedUrl = new LinkedList<>();
+		CopyOnWriteArrayList<String> visitedUrl = new CopyOnWriteArrayList<>();
 		visitedUrl.add("http://redhat.com");
-		CrawlSite crawlSite = new CrawlSite(true, allowedDomain, 5 , "http://redhat.com");
-		SiteMap siteMapRoot = new SiteMap("http://redhat.com","http://redhat.com"); 
-		SiteMap siteMap = crawlSite.crawlUrl("http://redhat.com",  visitedUrl ,siteMapRoot);
-		System.out.println(siteMap);
-		System.out.println(siteMap.getText());
-		assertEquals(siteMap.getText(), "http://redhat.com");
+		CrawlSite crawlSite = new CrawlSite(true, allowedDomain, "http://redhat.com");
+		SiteMap siteMapResponse = crawlSite.crawlUrl("http://redhat.com",  visitedUrl );
+		assertEquals(siteMapResponse.getText(), "http://redhat.com");
 
 		// check for failure
-		siteMap = crawlSite.crawlUrl("redhat.com",  visitedUrl ,siteMapRoot);
-		assertEquals(siteMap, null);
+		siteMapResponse = crawlSite.crawlUrl("redhat.com",  visitedUrl );
+		assertEquals(siteMapResponse.	getChildren(), null);
 	}
 
 }

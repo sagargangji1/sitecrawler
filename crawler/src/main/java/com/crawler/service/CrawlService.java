@@ -1,11 +1,11 @@
 package com.crawler.service;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.stereotype.Component;
 
-import com.crawler.model.SiteMap;
+import com.crawler.pojo.SiteMapResponse;
 import com.crawler.utils.CrawlSite;
 /**
  * 
@@ -17,14 +17,15 @@ import com.crawler.utils.CrawlSite;
 @Component
 public class CrawlService {
 
-	public SiteMap crawlSite(String url , List<String> domain ,int noOfPagesToCrawl , String baseUrl){
-		SiteMap root = new SiteMap(url ,url);
-		if(noOfPagesToCrawl < 2)
-			return root;
-		List<String> visitedUrl = new LinkedList<>();
+	public SiteMapResponse crawlSite(String url , List<String> domain  , String baseUrl , CopyOnWriteArrayList<String> visitedUrl){
+		if(visitedUrl == null)
+		visitedUrl = new CopyOnWriteArrayList<>();
 		visitedUrl.add(url);
-		CrawlSite crawlSite = new CrawlSite(true ,domain , noOfPagesToCrawl , baseUrl);
-		return  crawlSite.crawlUrl(url, visitedUrl ,root);
+		CrawlSite crawlSite = new CrawlSite(true ,domain  , baseUrl);
+		SiteMapResponse siteMapResponse = new SiteMapResponse(); 		
+		siteMapResponse.setSiteMap( crawlSite.crawlUrl(url, visitedUrl ));
+		siteMapResponse.setVisitedUrl(visitedUrl);
+		return siteMapResponse;
 	}
 	
 }

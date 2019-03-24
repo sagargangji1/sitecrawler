@@ -2,6 +2,8 @@ package com.crawler.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.crawler.model.SiteMap;
+import com.crawler.pojo.SiteMapResponse;
 
 @RunWith(SpringRunner.class)
 public class CrawlServiceTest {
@@ -24,11 +27,12 @@ public class CrawlServiceTest {
 				add("redhat.com");
 			}
 		};
+		CopyOnWriteArrayList<String> visitedUrl = new CopyOnWriteArrayList<>();
+		visitedUrl.add("http://redhat.com");
+		SiteMapResponse siteMapResponse= crawlService.crawlSite("hsttp://redhat.com", allowedDomain, "htstp://redhat.com",visitedUrl);
+		assertEquals(siteMapResponse.getSiteMap().getChildren(), null);
 
-		SiteMap siteMap = crawlService.crawlSite("http://redhat.com", allowedDomain, 0,"http://redhat.com");
-		assertEquals(siteMap.getChildren(), null);
-
-		siteMap = crawlService.crawlSite("http://redhat.com", allowedDomain, 5,"http://redhat.com");
-		assertEquals(siteMap.getChildren().size() > 0, true);
+		siteMapResponse = crawlService.crawlSite("http://redhat.com", allowedDomain, "http://redhat.com",visitedUrl);
+		assertEquals(siteMapResponse.getSiteMap().getChildren().size() > 0, true);
 	}
 }

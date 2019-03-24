@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Crawler</title>
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+</head>
+<body>
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+
+	<script>
+
+	  $(document).ready(function(){
+		  $(document).ajaxStart(function(){
+			    $("#wait").css("display", "block");
+			  });
+			  $(document).ajaxComplete(function(){
+			    $("#wait").css("display", "none");
+			  });
+			 /*  $("button").click(function(){
+			    $("#txt").load("demo_ajax_load.asp");
+			  }); */
+		  $('#jstree').on('loaded.jstree', function() {
+			  $('#jstree').jstree('open_all');
+		  });
+		});
+	  
+	  
+	  function setEvent(){
+		  
+		  $('#jstree')
+		    .on('select_node.jstree', function(event, data) {
+		    	/* if(data.node.children != undefined && data.node.children.length >0)
+		    		return; */
+		    	//alert( $('input[name=visitedUrl]').val());
+		    	var id = data.node.id;
+		  var request = new Object();
+			request.url = data.node.original.url;;
+			request.visitedUrl = $('input[name=visitedUrl]').val().split(',');
+			console.log(request);
+			
+			$.ajax({
+			    url: '/crawler/crawl/site',
+			    type: 'post',
+			    data:JSON.stringify(request),
+			    headers: {
+			        
+			        "Content-Type": 'application/json'  
+			    },
+			    dataType: 'json',
+			    success: function (responsedata) {
+			        console.info(responsedata);
+			        console.info(responsedata.siteMap);
+			        if(responsedata.status.code == 200){
+						if(responsedata.siteMap != undefined && responsedata.siteMap != null &&responsedata.siteMap.children != undefined  && responsedata.siteMap.children != null){		        	
+			        	var array_name = responsedata.siteMap.children;
+				        console.log(array_name);
+				        $('input[name=visitedUrl]').val(responsedata.visitedUrl);
+						array_name.forEach(function(item){
+					    	$('#jstree').jstree().create_node(id , {
+					    	      "text": item.text,
+					    	      "url": item.url
+					    	    });
+					   
+			        });
+						 $('#jstree').jstree("toggle_node", data.node);
+			        }
+			        }
+			        	
+			        
+			        
+			         
+			    }
+			});
+		    });
+	  }
+	  
+	//  $(function() {
+		/*   $('#jstree')
+		    .on('select_node.jstree', function(event, data) {
+		    	 if(data.node.children != undefined && data.node.children.length >0)
+		    		return;
+		    	//alert( $('input[name=visitedUrl]').val());
+		    	var id = data.node.id;
+		  var request = new Object();
+			request.url = data.node.original.url;;
+			request.visitedUrl = $('input[name=visitedUrl]').val().split(',');
+			console.log(request);
+			
+			$.ajax({
+			    url: '/crawler/crawl/site',
+			    type: 'post',
+			    data:JSON.stringify(request),
+			    headers: {
+			        
+			        "Content-Type": 'application/json'  
+			    },
+			    dataType: 'json',
+			    success: function (responsedata) {
+			        console.info(responsedata);
+			        console.info(responsedata.siteMap);
+			        if(responsedata.status.code == 200){
+			        	var array_name = responsedata.siteMap.children;
+				        console.log(array_name);
+				        $('input[name=visitedUrl]').val(responsedata.visitedUrl);
+				         $('#jstree').jstree({
+							'core' : {
+								'check_callback' : true,
+								'data' : array_name
+							}
+						}) ; 
+						var childs = [{"text":""}]
+						array_name.forEach(function(item){
+					    	$('#jstree').jstree().create_node(id , {
+					    	      "text": item.text,
+					    	      "url": item.url
+					    	   					    	    });
+					   
+			        });
+						 $('#jstree').jstree("toggle_node", data.node);
+			        }
+			        	
+			        
+			        
+			         
+			    }
+			});
+		    }); */
+		 
+	 // });
+	
+	
+	function doCrawlPages (){
+		$('#jstree').jstree('destroy')
+		$('#request').text('We are Processing Request . Plz Wait..');
+		var request = new Object();
+		request.url = $("#url").val();
+		//request.noOfPagesToCrawl = $("#noOfPages").val();
+		
+		console.log(request);
+		
+		$.ajax({
+		    url: '/crawler/crawl/site',
+		    type: 'post',
+		    data:JSON.stringify(request),
+		    headers: {
+		        
+		        "Content-Type": 'application/json'  
+		    },
+		    dataType: 'json',
+		    success: function (data) {
+		        console.info(data);
+		        console.info(data.siteMap);
+		        if(data.status.code == 200){
+		        	$('#request').text('We are done with crawling , You can click on Arrow to expand Menu .');
+		        	var array_name = [data.siteMap];
+			        console.log(array_name);
+			        $('input[name=visitedUrl]').val(data.visitedUrl);
+			        $('#jstree').jstree({
+						'core' : {
+							'check_callback' : true,
+							'data' : array_name
+						}
+					}) ;
+			        
+			        $('#jstree').jstree("toggle_node", "j1_1");
+			        setEvent();
+		        }
+		        else
+		        	$('#request').text('We are done with crawling , Error :- '+ data.status.message);
+		        	
+		        
+		         
+		    }
+		});  
+	}
+	
+	function isNumberKey(evt)
+    {
+       var charCode = (evt.which) ? evt.which : evt.keyCode;
+       if (charCode != 46 && charCode > 31 
+         && (charCode < 48 || charCode > 57))
+          return false;
+
+       return true;
+    }
+	
+	
+	</script>
+
+	<div>Hey There, Plz share following input to crawl site.</div>
+	<br />
+	<div id="loader">
+		Enter Site Url : <input id="url">
+		<!-- No Of Pages to Crawl : <input
+			id="noOfPages" value="10" onkeypress="return isNumberKey(event)"> -->
+	</div>
+	<br />
+	<div>
+		<button id="submit1" onclick="doCrawlPages()">Click to Crawl
+			Pages</button>
+	</div>
+	<br>
+
+	<div>
+		<label id="request"></label>
+	</div>
+	<br />
+	<input type="hidden" id="visitedUrl" name="visitedUrl">
+	<div id="jstree"></div>
+	<div id="wait"
+		style="display: none; width: 69px; height: 89px; border: 1px solid black; position: absolute; top: 50%; left: 50%; padding: 2px;">
+		<img src='demo_wait.gif' width="64" height="64" /><br>Loading..
+	</div>
+</body>
+</html>

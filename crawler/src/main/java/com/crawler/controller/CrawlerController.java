@@ -47,8 +47,8 @@ public class CrawlerController {
 				allowedDomain = new ArrayList<>();
 				allowedDomain.add(domain);
 			}
-			SiteMap m = crawlService.crawlSite(crawlRequest.getUrl(), allowedDomain, noOfPagesToCrawl , baseUrl);
-			siteMapResponse.setSiteMap(m);
+			SiteMapResponse res = crawlService.crawlSite(crawlRequest.getUrl(), allowedDomain,  baseUrl , crawlRequest.getVisitedUrl());
+			siteMapResponse = res;
 			siteMapResponse.setStatus(ResponseConstantUtility.getSuccessResponse());
 		}
 		return siteMapResponse;

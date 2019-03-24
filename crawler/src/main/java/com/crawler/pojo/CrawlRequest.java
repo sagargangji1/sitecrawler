@@ -1,12 +1,15 @@
 package com.crawler.pojo;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CrawlRequest {
 
 	String url;
 	//optional
 	Integer noOfPagesToCrawl;
+	
+	CopyOnWriteArrayList<String> visitedUrl ;
 	
 	List<String> allowedDomain;
 	
@@ -32,6 +35,14 @@ public class CrawlRequest {
 
 	public void setAllowedDomain(List<String> allowedDomain) {
 		this.allowedDomain = allowedDomain;
+	}
+
+	public CopyOnWriteArrayList<String> getVisitedUrl() {
+		return visitedUrl;
+	}
+
+	public void setVisitedUrl(CopyOnWriteArrayList<String> visitedUrl) {
+		this.visitedUrl = visitedUrl;
 	}
 	
 }

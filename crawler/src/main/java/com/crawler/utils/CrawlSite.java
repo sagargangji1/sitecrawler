@@ -1,14 +1,16 @@
 package com.crawler.utils;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.crawler.model.SiteMap;
@@ -26,100 +28,53 @@ public class CrawlSite {
 
 	private String baseUrl;
 
-	private AtomicInteger counter;
-
-	private int maxUrlToBeCrawl;
-
-	public CrawlSite(boolean restrictDomain, List<String> allowedDomains, int maxUrlToBeCrawl, String baseUrl) {
+	public CrawlSite(boolean restrictDomain, List<String> allowedDomains, String baseUrl) {
 		this.restrictDomain = restrictDomain;
 		this.allowedDomains = allowedDomains;
-		this.maxUrlToBeCrawl = maxUrlToBeCrawl;
-		this.counter = new AtomicInteger(1);
 		this.baseUrl = baseUrl;
 	}
 
-	public SiteMap crawlUrl(String url, List<String> visitedUrl, SiteMap parentSiteMap) {
-		if (isCounterExceed())
-			return null;
+	public SiteMap crawlUrl(String url, CopyOnWriteArrayList<String> visitedUrl) {
+		SiteMap siteMap = new SiteMap();
+		siteMap.setText(url);
+		siteMap.setUrl(url);
 		try {
 			Document doc = Jsoup.connect(url).get();
 			Elements questions = doc.select("a[href]");
 
-			// get all links and recursively call the crawlUrl method
-			List<SiteMap> childs = new ArrayList<>();
-			for (Element link : questions) {
-				if (isCounterExceed())
-					break;
-				String text = link.text();
-				String nextUrl = link.attr("href");
-				nextUrl = formUrl(nextUrl);
-				if (text == null || text.isEmpty() || isMalformedUrl(nextUrl))
-					continue;
-				try {
-					new URL(nextUrl);
-					if (doCrawlNextPage(nextUrl, visitedUrl)) {
-						SiteMap siteMap = new SiteMap(link.text(), nextUrl);
-						childs.add(siteMap);
-						visitedUrl.add(nextUrl.toLowerCase());
-						counter.incrementAndGet();
-					}
-				} catch (Exception e) {
-					continue;
+			int totalRecord = questions.size();
+			if(totalRecord == 0 )
+				return null;
+			int totalThread = totalRecord;
+			if (totalRecord > 3)
+				totalThread = totalRecord / 3;
+			ExecutorService executor = Executors.newFixedThreadPool(totalThread);
+			List<Callable<SiteMap>> callableTasks = new ArrayList<>();
+			callableTasks.add(new CrawlThread(questions.subList(0, totalThread), baseUrl, restrictDomain,
+					allowedDomains, visitedUrl));
+			if (totalThread != totalRecord) {
+				int end = totalThread * 2;
+				if (end > totalRecord)
+					end = totalRecord;
+				callableTasks.add(new CrawlThread(questions.subList(totalThread, end), baseUrl, restrictDomain,
+						allowedDomains, visitedUrl));
+				if (end < totalRecord){
+			/*		System.out.println(end);
+					System.out.println(totalRecord);*/
+					callableTasks.add(new CrawlThread(questions.subList(end, totalRecord), baseUrl,
+						restrictDomain, allowedDomains, visitedUrl));
 				}
-
 			}
-			parentSiteMap.setChildren(childs);
-			for (SiteMap siteMap : childs) {
-				if (isCounterExceed())
-					break;
-				crawlUrl(siteMap.getUrl(), visitedUrl, siteMap);
+			List<Future<SiteMap>> childs = executor.invokeAll(callableTasks);
+			for (Future<SiteMap> future : childs) {
+				if (future.get() != null && future.get().getChildren() != null)
+					siteMap.addChildrens(future.get().getChildren());
 			}
 
-		}
-		// Handle Malformed Url Exception
-		catch (MalformedURLException e) {
-			e.printStackTrace();
+		} catch (MalformedURLException e) {
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		return parentSiteMap;
+		return siteMap;
 	}
 
-	private String formUrl(String nextUrl) {
-		if (!nextUrl.startsWith("http"))
-			nextUrl = baseUrl + "/" + nextUrl;
-		return nextUrl;
-
-	}
-
-	private boolean isMalformedUrl(String url) {
-		if (url == null)
-			return true;
-		if (url.indexOf(':') != url.lastIndexOf(':'))
-			return true;
-		return false;
-	}
-
-	private boolean isCounterExceed() {
-		if (counter.get() > this.maxUrlToBeCrawl)
-			return true;
-		return false;
-	}
-
-	private boolean doCrawlNextPage(String url, List<String> visitedUrl) {
-		if (url == null)
-			return false;
-		if (visitedUrl.contains(url.toLowerCase()))
-			return false;
-
-		// Allow All domain to crawl
-		if (!restrictDomain)
-			return true;
-
-		// If Crawling restricted to specific domain then check for domain to
-		// crawl
-		String domain = CommonUtility.getDomain(url);
-		return restrictDomain && allowedDomains.contains(domain);
-
-	}
 }
