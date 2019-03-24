@@ -45,22 +45,22 @@ public class CrawlSite {
 			int totalRecord = questions.size();
 			if(totalRecord == 0 )
 				return null;
-			int totalThread = totalRecord;
-			if (totalRecord > 3)
-				totalThread = totalRecord / 3;
-			ExecutorService executor = Executors.newFixedThreadPool(totalThread);
+
+			int start = totalRecord;
+			
+			if (start > 3)
+				start = totalRecord / 3;
+			ExecutorService executor = Executors.newFixedThreadPool(3);
 			List<Callable<SiteMap>> callableTasks = new ArrayList<>();
-			callableTasks.add(new CrawlThread(questions.subList(0, totalThread), baseUrl, restrictDomain,
+			callableTasks.add(new CrawlThread(questions.subList(0, start), baseUrl, restrictDomain,
 					allowedDomains, visitedUrl));
-			if (totalThread != totalRecord) {
-				int end = totalThread * 2;
+			if (start != totalRecord) {
+				int end = start * 2;
 				if (end > totalRecord)
 					end = totalRecord;
-				callableTasks.add(new CrawlThread(questions.subList(totalThread, end), baseUrl, restrictDomain,
+				callableTasks.add(new CrawlThread(questions.subList(start, end), baseUrl, restrictDomain,
 						allowedDomains, visitedUrl));
 				if (end < totalRecord){
-			/*		System.out.println(end);
-					System.out.println(totalRecord);*/
 					callableTasks.add(new CrawlThread(questions.subList(end, totalRecord), baseUrl,
 						restrictDomain, allowedDomains, visitedUrl));
 				}
